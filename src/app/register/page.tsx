@@ -44,17 +44,21 @@ export default function RegisterPage() {
 
       if (authError) {
         console.error("Registration error:", authError);
-        const errorMessage = authError.message || "Registration failed. Please try again 😢";
-        setError(errorMessage);
+        const code = (authError as any)?.code || "";
+        const msg = authError.message || "";
+        if (code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL" || msg.toLowerCase().includes("already exists")) {
+          setError("An account with this email already exists. Please log in instead! 👋");
+        } else {
+          setError(msg || "Registration failed. Please try again 😢");
+        }
         setLoading(false);
         return;
       }
 
       // If token is returned directly, save it
-      const token = (data as any)?.token;
+      const token = (data as any)?.token || (data as any)?.session?.token;
       if (token) {
-        const tokenPart = typeof token === 'string' && token.includes('.') ? token.split('.')[0] : token;
-        localStorage.setItem("bearer_token", tokenPart);
+        localStorage.setItem("bearer_token", token);
       }
 
       // Initialize default user health data
